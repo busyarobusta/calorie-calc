@@ -9,6 +9,7 @@ function App() {
 
   const [rows, setRows] = useState([{ id: 1, weight: '', kcal: '' }])
   const [total, setTotal] = useState(null)
+  const [name, setName] = useState('')
   const [saving, setSaving] = useState(false)
   const [entries, setEntries] = useState([])
 
@@ -71,13 +72,15 @@ function App() {
 
   const saveEntry = async () => {
     if (total === null) return
+    if (!name.trim()) return
     setSaving(true)
 
-    // Сохраняем каждую строку отдельной записью
+    // Сохраняем каждую строку отдельной записью, у всех — одно название
     const rowsToSave = rows
       .filter(row => row.weight && row.kcal)
       .map(row => ({
         user_id: session.user.id,
+        name: name.trim(),
         weight: parseFloat(row.weight),
         kcal_per_100g: parseFloat(row.kcal),
         result: (parseFloat(row.kcal) / 100) * parseFloat(row.weight),
@@ -86,6 +89,7 @@ function App() {
     const { error } = await supabase.from('entries').insert(rowsToSave)
 
     if (!error) {
+      setName('')
       await loadEntries()
     }
 
@@ -168,10 +172,21 @@ function App() {
           <div className="result-value">
             {total.toFixed(1)} <span>ккал</span>
           </div>
+
+          <div className="field" style={{ marginTop: '16px', textAlign: 'left' }}>
+            <label>Название расчёта</label>
+            <input
+              type="text"
+              placeholder="Например, «Завтрак»"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
           <button
             className="add-btn"
             onClick={saveEntry}
-            disabled={saving}
+            disabled={saving || !name.trim()}
             style={{ marginTop: '12px', marginBottom: 0 }}
           >
             {saving ? 'Сохраняем...' : 'Сохранить расчёт'}
@@ -189,7 +204,7 @@ function App() {
               style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '6px', padding: '10px 14px', marginBottom: '8px' }}
             >
               <span style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', fontSize: '0.85rem' }}>
-                {entry.weight} г × {entry.kcal_per_100g} ккал/100г = <strong>{entry.result.toFixed(1)} ккал</strong>
+                <strong>{entry.name}</strong> — {entry.weight} г × {entry.kcal_per_100g} ккал/100г = <strong>{entry.result.toFixed(1)} ккал</strong>
               </span>
               <button className="remove-btn" onClick={() => deleteEntry(entry.id)}>✕</button>
             </div>
