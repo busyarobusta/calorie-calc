@@ -31,10 +31,27 @@ function Diary({ session }) {
   const [selectedDate, setSelectedDate] = useState(formatDate(new Date()))
   const [entries, setEntries] = useState([])
   const [loading, setLoading] = useState(true)
+  const [calorieGoal, setCalorieGoal] = useState(null)
+
+  useEffect(() => {
+    loadProfile()
+  }, [])
 
   useEffect(() => {
     loadDiaryEntries()
   }, [selectedDate])
+
+  const loadProfile = async () => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('calorie_goal')
+      .eq('id', session.user.id)
+      .maybeSingle()
+
+    if (!error && data) {
+      setCalorieGoal(data.calorie_goal)
+    }
+  }
 
   const loadDiaryEntries = async () => {
     setLoading(true)
@@ -69,6 +86,7 @@ function Diary({ session }) {
   }
 
   const total = entries.reduce((sum, entry) => sum + entry.result, 0)
+  const remaining = calorieGoal !== null ? calorieGoal - total : null
   const isToday = selectedDate === formatDate(new Date())
 
   return (
@@ -95,9 +113,25 @@ function Diary({ session }) {
       </div>
 
       <div className="result-box visible">
-        <div className="result-label">Итого за день</div>
-        <div className="result-value">
-          {total.toFixed(1)} <span>ккал</span>
+        <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
+          <div>
+            <div className="result-label">Цель</div>
+            <div style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>
+              {calorieGoal !== null ? calorieGoal : '—'}
+            </div>
+          </div>
+          <div>
+            <div className="result-label">Употреблено</div>
+            <div style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>
+              {total.toFixed(0)}
+            </div>
+          </div>
+          <div>
+            <div className="result-label">Остаток</div>
+            <div style={{ fontSize: '1.3rem', color: remaining !== null && remaining < 0 ? '#b0503f' : 'var(--accent)' }}>
+              {remaining !== null ? remaining.toFixed(0) : '—'}
+            </div>
+          </div>
         </div>
       </div>
 
