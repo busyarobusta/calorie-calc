@@ -41,6 +41,16 @@ function App() {
   return (
     <HashRouter>
       <div className="card">
+        <Nav />
+
+        <Routes>
+          <Route path="/" element={<QuickCalc session={session} />} />
+          <Route path="/dishes" element={<Dishes session={session} />} />
+          <Route path="/diary" element={<Diary session={session} />} />
+          <Route path="/profile" element={<Profile session={session} onLogout={handleLogout} />} />
+        </Routes>
+      </div>
+      {/* <div className="card">
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
           <button className="remove-btn" onClick={handleLogout} style={{ fontSize: '0.8rem' }}>
             Выйти
@@ -55,7 +65,7 @@ function App() {
           <Route path="/diary" element={<Diary session={session} />} />
           <Route path="/profile" element={<Profile session={session} />} />
         </Routes>
-      </div>
+      </div> */}
     </HashRouter>
   )
 }

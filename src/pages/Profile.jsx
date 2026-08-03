@@ -1,4 +1,4 @@
-function Profile({ session }) {
+function Profile({ session, onLogout }) {
   return (
     <div className="card">
       <h1>Личный кабинет</h1>
@@ -8,11 +8,12 @@ function Profile({ session }) {
         <div className="result-label">Email</div>
         <p style={{ margin: 0 }}>{session.user.email}</p>
       </div>
+
+      <button className="add-btn" onClick={onLogout} style={{ marginTop: '16px' }}>
+        Выйти
+      </button>
     </div>
-
-    )
-
-  
+  )
 }
 
 export default Profile
