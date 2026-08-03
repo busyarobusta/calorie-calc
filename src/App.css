@@ -72,7 +72,9 @@ label {
 }
 
 input[type="number"],
-input[type="text"] {
+input[type="text"],
+input[type="email"],
+input[type="password"] {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 0.9rem;
   padding: 12px 14px;
