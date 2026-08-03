@@ -79,6 +79,8 @@ const today = getLocalDate()
     if (!error) {
       setName('')
       setSaveToDiary(false)
+      setRows([{ id: 1, ingredient: '', weight: '', kcal: '' }])
+      setTotal(null)
       await loadEntries()
     }
 
@@ -126,7 +128,7 @@ const today = getLocalDate()
           <div className="row" key={row.id}>
 
             <div className="field">
-              <label>ингредиент</label>
+              <label>продукт</label>
               <input
                 type="text"
                 placeholder="Опционально"
@@ -159,7 +161,7 @@ const today = getLocalDate()
             {index > 0 ? (
               <button
                 className="remove-btn"
-                title="Удалить значение"
+                title="Удалить ингредиент"
                 onClick={() => removeRow(row.id)}
               >
                 ✕
@@ -171,7 +173,7 @@ const today = getLocalDate()
         ))}
       </div>
 
-      <button className="add-btn" onClick={addRow}>+ Добавить значение</button>
+      <button className="add-btn" onClick={addRow}>+ Добавить ингредиент</button>
       <button className="calc-btn" onClick={calculate}>Рассчитать</button>
 
       {total !== null && (
@@ -240,9 +242,8 @@ const today = getLocalDate()
   })}: 
 
   <strong> {entry.name}</strong> — <strong>{entry.result.toFixed(1)} ккал </strong>
-  {entry.in_diary && <span title="В дневнике" style={{ color: 'var(--accent)' }}>✓ дневник</span>}
+  {entry.in_diary && <span title="В дневнике" style={{ color: 'var(--accent)' }}> ✓ в дневнике </span>}
 
-  {/* <strong> {entry.name}</strong> — <strong>{entry.result.toFixed(1)} ккал </strong> */}
 
   {entry.items && entry.items.length > 1 && (
     <div style={{ color: '#6b7268', fontSize: '0.78rem', marginTop: '8px' }}>
@@ -265,7 +266,7 @@ const today = getLocalDate()
                     ✓
                   </button>
                 )}
-                <button className="remove-btn" onClick={() => deleteEntry(entry.id)}>✕</button>
+                <button className="remove-btn" onClick={() => deleteEntry(entry.id)} title="Удалить из истории" >✕</button>
               </div>
 
             </div>

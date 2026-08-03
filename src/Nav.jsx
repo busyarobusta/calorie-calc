@@ -13,7 +13,7 @@ function Nav() {
 
   return (
     <nav style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
-      <NavLink to="/" end style={linkStyle}>Быстрые расчёты</NavLink>
+      <NavLink to="/" end style={linkStyle}>Калькулятор</NavLink>
       <NavLink to="/dishes" style={linkStyle}>Блюда</NavLink>
       <NavLink to="/diary" style={linkStyle}>Дневник</NavLink>
       <NavLink to="/profile" style={linkStyle}>Кабинет</NavLink>
