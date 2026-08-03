@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 
 function QuickCalc({ session }) {
-  const [rows, setRows] = useState([{ id: 1, weight: '', kcal: '' }])
+  const [rows, setRows] = useState([{ id: 1, ingredient: '', weight: '', kcal: '' }])
   const [total, setTotal] = useState(null)
   const [name, setName] = useState('')
   const [saving, setSaving] = useState(false)
@@ -25,7 +25,7 @@ function QuickCalc({ session }) {
 
   const addRow = () => {
     const newId = rows.length > 0 ? Math.max(...rows.map(r => r.id)) + 1 : 1
-    setRows([...rows, { id: newId, weight: '', kcal: '' }])
+    setRows([...rows, { id: newId, ingredient: '', weight: '', kcal: '' }])
   }
 
   const removeRow = (id) => {
@@ -56,6 +56,7 @@ function QuickCalc({ session }) {
     const items = rows
       .filter(row => row.weight && row.kcal)
       .map(row => ({
+        ingredient: row.ingredient.trim(),
         weight: parseFloat(row.weight),
         kcal_per_100g: parseFloat(row.kcal),
         result: (parseFloat(row.kcal) / 100) * parseFloat(row.weight),
@@ -90,6 +91,17 @@ function QuickCalc({ session }) {
       <div id="rows">
         {rows.map((row, index) => (
           <div className="row" key={row.id}>
+
+            <div className="field">
+              <label>ингредиент</label>
+              <input
+                type="text"
+                placeholder="Опционально"
+                value={row.ingredient}
+                onChange={(e) => updateRow(row.id, 'ingredient', e.target.value)}
+              />
+            </div>
+            
             <div className="field">
               <label>вес, г</label>
               <input
@@ -100,6 +112,7 @@ function QuickCalc({ session }) {
                 onChange={(e) => updateRow(row.id, 'weight', e.target.value)}
               />
             </div>
+
             <div className="field">
               <label>ккал/100г</label>
               <input
@@ -177,7 +190,8 @@ function QuickCalc({ session }) {
   {entry.items && entry.items.length > 1 && (
     <div style={{ color: '#6b7268', fontSize: '0.78rem', marginTop: '8px' }}>
       {entry.items.map((item, i) => (
-        <div key={i}>{item.weight} г × {item.kcal_per_100g} ккал/100г = {item.result.toFixed(1)} ккал</div>
+        <div key={i}>{item.ingredient ? item.ingredient + ': ' : ''}{item.weight} г × {item.kcal_per_100g} ккал/100г = {item.result.toFixed(1)} ккал</div>
+        // <div key={i}>{item.weight} г × {item.kcal_per_100g} ккал/100г = {item.result.toFixed(1)} ккал</div>
       ))}
     </div>
   )}
