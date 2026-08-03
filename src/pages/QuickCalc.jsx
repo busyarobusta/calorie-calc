@@ -5,6 +5,7 @@ function QuickCalc({ session }) {
   const [rows, setRows] = useState([{ id: 1, ingredient: '', weight: '', kcal: '' }])
   const [total, setTotal] = useState(null)
   const [name, setName] = useState('')
+  const [saveToDiary, setSaveToDiary] = useState(false)
   const [saving, setSaving] = useState(false)
   const [entries, setEntries] = useState([])
 
@@ -62,31 +63,63 @@ function QuickCalc({ session }) {
         result: (parseFloat(row.kcal) / 100) * parseFloat(row.weight),
       }))
 
+// const today = new Date().toISOString().split('T')[0]
+
+const today = getLocalDate()
+
     const { error } = await supabase.from('entries').insert({
       user_id: session.user.id,
       name: name.trim(),
       result: total,
       items: items,
+      in_diary: saveToDiary,
+      diary_date: saveToDiary ? today : null,
     })
 
     if (!error) {
       setName('')
+      setSaveToDiary(false)
       await loadEntries()
     }
 
+
     setSaving(false)
   }
-
 
   const deleteEntry = async (id) => {
     await supabase.from('entries').delete().eq('id', id)
     loadEntries()
   }
 
+  const getLocalDate = () => {
+    const date = new Date()
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const toggleDiary = async (entry) => {
+    const newValue = !entry.in_diary
+    const { error } = await supabase
+      .from('entries')
+      .update({
+        in_diary: newValue,
+        diary_date: newValue ? getLocalDate() : null,
+      })
+      .eq('id', entry.id)
+
+    if (error) {
+      alert('Не удалось обновить дневник: ' + error.message)
+    }
+    loadEntries()
+  }
+
+
   return (
     <div className="card">
       <h1>Быстрый расчёт</h1>
-      {/* <p className="sub">Вес × (ккал / 100 г) — для каждой строки, затем сумма</p> */}
+
 
       <div id="rows">
         {rows.map((row, index) => (
@@ -158,6 +191,24 @@ function QuickCalc({ session }) {
             />
           </div>
 
+        <label style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginTop: '16px',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+          }}>
+            <input
+              type="checkbox"
+              checked={saveToDiary}
+              onChange={(e) => setSaveToDiary(e.target.checked)}
+              style={{ width: 'auto' }}
+            />
+            Сохранить в дневник
+          </label>
+
           <button
             className="add-btn"
             onClick={saveEntry}
@@ -166,6 +217,7 @@ function QuickCalc({ session }) {
           >
             {saving ? 'Сохраняем...' : 'Сохранить значение'}
           </button>
+
         </div>
       )}
 
@@ -176,7 +228,7 @@ function QuickCalc({ session }) {
             <div
               key={entry.id}
               className="row"
-              style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '6px', padding: '10px 14px', marginBottom: '8px' }}
+              style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '6px', padding: '10px 14px', marginBottom: '8px', justifyContent: 'space-between', alignItems: 'flex-start' }}
             >
 
               <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', fontSize: '0.85rem' }}>
@@ -186,7 +238,12 @@ function QuickCalc({ session }) {
                 hour: "2-digit",
                 minute: "2-digit",
   })}: 
+
   <strong> {entry.name}</strong> — <strong>{entry.result.toFixed(1)} ккал </strong>
+  {entry.in_diary && <span title="В дневнике" style={{ color: 'var(--accent)' }}>✓ дневник</span>}
+
+  {/* <strong> {entry.name}</strong> — <strong>{entry.result.toFixed(1)} ккал </strong> */}
+
   {entry.items && entry.items.length > 1 && (
     <div style={{ color: '#6b7268', fontSize: '0.78rem', marginTop: '8px' }}>
       {entry.items.map((item, i) => (
@@ -196,7 +253,21 @@ function QuickCalc({ session }) {
     </div>
   )}
 </div>
-              <button className="remove-btn" onClick={() => deleteEntry(entry.id)}>✕</button>
+
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {!entry.in_diary && (
+                  <button
+                    className="remove-btn"
+                    title="Добавить запись в дневник"
+                    onClick={() => toggleDiary(entry)}
+                    style={{ color: '#a89f8f' }}
+                  >
+                    ✓
+                  </button>
+                )}
+                <button className="remove-btn" onClick={() => deleteEntry(entry.id)}>✕</button>
+              </div>
+
             </div>
           ))}
         </div>
@@ -206,3 +277,4 @@ function QuickCalc({ session }) {
 }
 
 export default QuickCalc
+
