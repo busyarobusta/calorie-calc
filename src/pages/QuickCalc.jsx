@@ -53,17 +53,20 @@ function QuickCalc({ session }) {
     if (!name.trim()) return
     setSaving(true)
 
-    const rowsToSave = rows
+    const items = rows
       .filter(row => row.weight && row.kcal)
       .map(row => ({
-        user_id: session.user.id,
-        name: name.trim(),
         weight: parseFloat(row.weight),
         kcal_per_100g: parseFloat(row.kcal),
         result: (parseFloat(row.kcal) / 100) * parseFloat(row.weight),
       }))
 
-    const { error } = await supabase.from('entries').insert(rowsToSave)
+    const { error } = await supabase.from('entries').insert({
+      user_id: session.user.id,
+      name: name.trim(),
+      result: total,
+      items: items,
+    })
 
     if (!error) {
       setName('')
@@ -72,6 +75,7 @@ function QuickCalc({ session }) {
 
     setSaving(false)
   }
+
 
   const deleteEntry = async (id) => {
     await supabase.from('entries').delete().eq('id', id)
@@ -161,17 +165,23 @@ function QuickCalc({ session }) {
               className="row"
               style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '6px', padding: '10px 14px', marginBottom: '8px' }}
             >
-              <span style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', fontSize: '0.85rem' }}>
-                <strong>{entry.name}</strong>{" "}
-{new Date(entry.created_at).toLocaleString("ru-RU", {
-  day: "2-digit",
-  month: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-})}
-: {entry.weight} г × {entry.kcal_per_100g} ккал/100г ={" "}
-<strong>{entry.result.toFixed(1)} ккал</strong>
-              </span>
+
+              <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', fontSize: '0.85rem' }}>
+  {new Date(entry.created_at).toLocaleString("ru-RU", {
+                day: "2-digit",
+                month: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+  })}: 
+  <strong> {entry.name}</strong> — <strong>{entry.result.toFixed(1)} ккал </strong>
+  {entry.items && entry.items.length > 1 && (
+    <div style={{ color: '#6b7268', fontSize: '0.78rem', marginTop: '8px' }}>
+      {entry.items.map((item, i) => (
+        <div key={i}>{item.weight} г × {item.kcal_per_100g} ккал/100г = {item.result.toFixed(1)} ккал</div>
+      ))}
+    </div>
+  )}
+</div>
               <button className="remove-btn" onClick={() => deleteEntry(entry.id)}>✕</button>
             </div>
           ))}
