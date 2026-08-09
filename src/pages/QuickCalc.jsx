@@ -63,8 +63,6 @@ function QuickCalc({ session }) {
         result: (parseFloat(row.kcal) / 100) * parseFloat(row.weight),
       }))
 
-// const today = new Date().toISOString().split('T')[0]
-
 const today = getLocalDate()
 
     const { error } = await supabase.from('entries').insert({
@@ -73,8 +71,22 @@ const today = getLocalDate()
       result: total,
       items: items,
       in_diary: saveToDiary,
-      diary_date: saveToDiary ? today : null,
     })
+
+    if (!error && saveToDiary) {
+      const { error: diaryError } = await supabase.from('diary_entries').insert({
+        user_id: session.user.id,
+        name: name.trim(),
+        result: total,
+        items: items,
+        diary_date: today,
+        source: 'quick_calc',
+      })
+
+      if (diaryError) {
+        alert('Не удалось добавить в дневник: ' + diaryError.message)
+      }
+    }
 
     if (!error) {
       setName('')
@@ -83,7 +95,6 @@ const today = getLocalDate()
       setTotal(null)
       await loadEntries()
     }
-
 
     setSaving(false)
   }
@@ -102,17 +113,27 @@ const today = getLocalDate()
   }
 
   const toggleDiary = async (entry) => {
-    const newValue = !entry.in_diary
+    const { error: diaryError } = await supabase.from('diary_entries').insert({
+      user_id: session.user.id,
+      name: entry.name,
+      result: entry.result,
+      items: entry.items,
+      diary_date: getLocalDate(),
+      source: 'quick_calc',
+    })
+
+    if (diaryError) {
+      alert('Не удалось добавить в дневник: ' + diaryError.message)
+      return
+    }
+
     const { error } = await supabase
       .from('entries')
-      .update({
-        in_diary: newValue,
-        diary_date: newValue ? getLocalDate() : null,
-      })
+      .update({ in_diary: true })
       .eq('id', entry.id)
 
     if (error) {
-      alert('Не удалось обновить дневник: ' + error.message)
+      alert('Не удалось обновить пометку: ' + error.message)
     }
     loadEntries()
   }
@@ -242,7 +263,7 @@ const today = getLocalDate()
   })}: 
 
   <strong> {entry.name}</strong> — <strong>{entry.result.toFixed(1)} ккал </strong>
-  {entry.in_diary && <span title="В дневнике" style={{ color: 'var(--accent)' }}> ✓ в дневнике </span>}
+  {/* {entry.in_diary && <span title="В дневнике" style={{ color: 'var(--accent)' }}> ✓ в дневнике </span>} */}
 
 
   {entry.items && entry.items.length > 1 && (

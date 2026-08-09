@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 
-// function formatDate(date) {
-//   return date.toISOString().split('T')[0]
-// }
-
 function formatDate(date) {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -56,9 +52,8 @@ function Diary({ session }) {
   const loadDiaryEntries = async () => {
     setLoading(true)
     const { data, error } = await supabase
-      .from('entries')
+      .from('diary_entries')
       .select('*')
-      .eq('in_diary', true)
       .eq('diary_date', selectedDate)
       .order('created_at', { ascending: true })
 
@@ -81,7 +76,10 @@ function Diary({ session }) {
   }
 
   const removeFromDiary = async (id) => {
-    await supabase.from('entries').update({ in_diary: false, diary_date: null }).eq('id', id)
+    const { error } = await supabase.from('diary_entries').delete().eq('id', id)
+    if (error) {
+      alert('Не удалось убрать запись из дневника: ' + error.message)
+    }
     loadDiaryEntries()
   }
 
@@ -144,28 +142,35 @@ function Diary({ session }) {
       ) : (
         <div style={{ marginTop: '24px' }}>
           {entries.map(entry => (
-
             <div
               key={entry.id}
               className="row"
               style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '6px', padding: '10px 14px', marginBottom: '8px', justifyContent: 'space-between', alignItems: 'flex-start' }}
             >
-
               <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', fontSize: '0.85rem' }}>
-                {/* {new Date(entry.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}{' '} */}
-                <strong>{entry.name}</strong> — <strong>{entry.result.toFixed(1)} ккал</strong>
-                {entry.items && entry.items.length > 1 && (
+                <strong>{entry.name}</strong>
+                {entry.weight && <> — {entry.weight} г</>} — <strong>{entry.result.toFixed(1)} ккал</strong>
+                {entry.items && entry.items.length > 0 && (
                   <div style={{ color: '#6b7268', fontSize: '0.78rem', marginTop: '8px' }}>
                     {entry.items.map((item, i) => (
                       <div key={i}>
                         {item.ingredient ? item.ingredient + ': ' : ''}
-                        {item.weight} г × {item.kcal_per_100g} ккал/100г = {item.result.toFixed(1)} ккал
+                        {item.weight} г
+                        {item.kcal_per_100g !== undefined
+                          ? <> × {item.kcal_per_100g} ккал/100г = {item.result.toFixed(1)} ккал</>
+                          : <> — {item.kcal} ккал</>}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-              <button className="remove-btn" title="Запись удалится из дневника, но сохранится в истории" onClick={() => removeFromDiary(entry.id)}> удалить </button>
+              <button
+                className="remove-btn"
+                title="Запись удалится из дневника, но сохранится в истории"
+                onClick={() => removeFromDiary(entry.id)}
+              >
+                удалить
+              </button>
             </div>
           ))}
         </div>

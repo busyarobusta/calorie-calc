@@ -140,7 +140,7 @@ function Profile({ session, onLogout }) {
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   type="button"
-                  className="add-btn"
+                  className="modal-cancel-btn"
                   onClick={closeEdit}
                   style={{ flex: 1, marginBottom: 0 }}
                 >
