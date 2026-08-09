@@ -143,6 +143,10 @@ const today = getLocalDate()
     <div className="card">
       <h1>Быстрый расчёт</h1>
 
+<p className="sub" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: '20px' }}>
+        Считайте калорийность одного или нескольких ингредиентов. <br />
+        Вы можете сохранить результат в историю и добавить его в дневник
+      </p>
 
       <div id="rows">
         {rows.map((row, index) => (

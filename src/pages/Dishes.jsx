@@ -79,6 +79,9 @@ function Dishes({ session }) {
   return (
     <div className="card">
       <h1>Библиотека еды</h1>
+      <p className="sub" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: '20px' }}>
+        Ваши сохраненные продукты и блюда
+      </p>
 
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
         <button style={tabStyle(tab === 'products')} onClick={() => setTab('products')}>
@@ -88,6 +91,12 @@ function Dishes({ session }) {
           Блюда
         </button>
       </div>
+
+      <p className="sub" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: '20px' }}>
+        {tab === 'products'
+          ? 'Одиночные продукты или готовые блюда'
+          : 'Сложные блюда из нескольких ингридиентов'}
+      </p>
 
       {tab === 'products' && (
         <>
